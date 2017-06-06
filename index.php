@@ -10,28 +10,38 @@ if (file_exists($csvfile)) {
 $row = 0;
 $fp = fopen('csvfile.csv', 'w');
 if (($handle = fopen("products-2017-06-06.csv", "r")) !== FALSE) {
- while ($data = fgetcsv($handle)) {
 
-$str = $data[25];
-     $pattern = '/Category Name:/i';
-$result = preg_match_all($pattern, $str, $matches, PREG_OFFSET_CAPTURE);
+    while ($data = fgetcsv($handle)) {
+        $categoryColumn = $data[25];
+        $pattern = '/Category Name:/i';
+        $result = preg_match_all($pattern, $categoryColumn, $matches, PREG_OFFSET_CAPTURE);
+        $category = '';
+        for($i=0;$i<$result;$i++) {
+            $tempPosition= $matches[0][$i][1];
+            $commapos = strpos($categoryColumn,',',$tempPosition+14);
+            $category .= substr($categoryColumn,$tempPosition+14,$commapos-$tempPosition-14)."|" ;
+        }
+        $data[25] = $category;
+$imgColumn = $data[26];
+$pattern = '/Product Image URL:/i';
 
+$result = preg_match_all($pattern, $imgColumn, $matches, PREG_OFFSET_CAPTURE);
 
 $res = '';
 for($i=0;$i<$result;$i++) {
 $tempPosition= $matches[0][$i][1];
- $commapos = strpos($str,',',$tempPosition+14);
-$res .= substr($str,$tempPosition+14,$commapos-$tempPosition-14)."|" ;
+ $commapos = strpos($imgColumn,',',$tempPosition+18);
+ if($commapos>1) {
+$res .= substr($imgColumn,$tempPosition+18,$commapos-$tempPosition-18)."|" ;
+} else {
+    $res .= substr($imgColumn,$tempPosition+18) ;
 }
-
-    $data[25] = $res;
-
-    // fputcsv($fp, $data);
-    echo $data[25]."\n\n\n\n";
-
-    
-
 }
+$data[26] = $res; 
+
+        fputcsv($fp, $data);
+
+    }
 }
 
 fclose($fp);
